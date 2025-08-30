@@ -1,0 +1,61 @@
+# =============================================================================
+# PRODUCTION-GRADE DOCKER COMPOSE CONFIGURATION
+# =============================================================================
+# Optimized for production deployment with proper resource management,
+# security configurations, and comprehensive health monitoring
+
+version: '3.8'
+
+services:
+  # ---------------------------------------------------------------------------
+  # Next.js Application Service
+  # ---------------------------------------------------------------------------
+  nextjs-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # Use BuildKit for enhanced build performance and caching
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+      # Build target for production optimization
+      target: runner
+      cache_from:
+        - node:22-alpine
+    
+    image: csiodadeldhura-admin-frontend:${APP_VERSION:-latest}
+    
+    container_name: csiodadeldhura-admin-frontend
+    
+    # Restart policy for production resilience
+    restart: unless-stopped
+    
+    # Port mapping - only expose necessary ports
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    
+    # Environment configuration
+    environment:
+      # Core Next.js configuration
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+      
+      # Performance tuning
+      - NODE_OPTIONS=--max-old-space-size=2048
+      
+      # Security headers
+      - FORCE_HTTPS=${FORCE_HTTPS:-false}
+      - TRUST_PROXY=${TRUST_PROXY:-false}
+      
+      # Application-specific variables
+      - APP_ENV=${APP_ENV:-production}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - API_TIMEOUT=${API_TIMEOUT:-30000}
+    
+    # Environment file for sensitive configuration
+    env_file:
+      - .env.production
+    
+  
+  
